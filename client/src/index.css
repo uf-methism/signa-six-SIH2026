@@ -1,0 +1,118 @@
+/* Civic Calm style: mineral paper, editorial cartography, and calm signal colors. */
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-paper: #f6f3ed;
+  --color-ink: #202622;
+  --color-teal: #0c7c74;
+  --color-ember: #c64b3f;
+  --font-display: "Fraunces", Georgia, serif;
+  --font-sans: "Manrope", system-ui, sans-serif;
+}
+
+:root {
+  --radius: 0.85rem;
+  --background: #f6f3ed;
+  --foreground: #202622;
+  --card: #ffffff;
+  --card-foreground: #202622;
+  --popover: #ffffff;
+  --popover-foreground: #202622;
+  --primary: #0c7c74;
+  --primary-foreground: #f6f3ed;
+  --secondary: #e5f0ec;
+  --secondary-foreground: #183d3b;
+  --muted: #eeeae1;
+  --muted-foreground: #68706a;
+  --accent: #f1bd58;
+  --accent-foreground: #202622;
+  --border: rgba(32, 38, 34, 0.1);
+  --input: rgba(32, 38, 34, 0.12);
+  --ring: #0c7c74;
+}
+
+@layer base {
+  * { @apply border-border outline-ring/50; }
+  html { background: var(--background); }
+  body { @apply bg-background text-foreground; margin: 0; min-width: 320px; font-family: "Manrope", system-ui, sans-serif; }
+  button, input, select { font: inherit; }
+  button:not(:disabled), [role="button"]:not([aria-disabled="true"]), a[href], select:not(:disabled), input:not(:disabled) { cursor: pointer; }
+  ::selection { background: #b8ddd6; color: #183d3b; }
+}
+
+@layer components {
+  .font-display { font-family: "Fraunces", Georgia, serif; }
+  .section-kicker { @apply text-[10px] font-bold uppercase tracking-[0.2em] text-ink/45; }
+  .section-title { @apply mt-2 font-display text-4xl tracking-[-0.06em] sm:text-5xl; }
+  .score-badge { @apply grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-[#f1bd58] text-ink; }
+  .score-badge span { @apply block text-base font-extrabold leading-none; }
+  .score-badge small { @apply mt-0.5 block text-[8px] font-bold uppercase tracking-[0.1em] text-ink/55; }
+  .demo-select { @apply rounded-full border border-ink/10 bg-white px-3 py-2 text-xs font-bold text-ink/70 outline-none transition focus:border-teal; }
+  .demo-alert { @apply inline-flex items-center gap-1.5 rounded-full border border-ember/25 bg-ember/8 px-3 py-2 text-xs font-bold text-ember transition hover:bg-ember/15; }
+  .sos-fab { @apply fixed bottom-[72px] right-4 z-40 inline-flex items-center gap-2 rounded-full border-2 border-paper bg-ember px-4 py-3 text-xs font-extrabold uppercase tracking-[0.12em] text-white shadow-[0_12px_26px_rgba(198,75,63,0.32)] transition hover:-translate-y-0.5 active:scale-95 lg:bottom-8 lg:right-8; }
+  .sos-armed { @apply bg-[#9a2d2d]; }
+  .sos-live { @apply animate-pulse bg-[#8b2323]; }
+  .hero-wash { position: absolute; right: -9rem; top: -10rem; height: 28rem; width: 28rem; border-radius: 999px; background: radial-gradient(circle, rgba(115,199,186,.26), transparent 64%); }
+  .compass-ticks { position: absolute; right: 2rem; top: 2rem; display: grid; grid-template-columns: repeat(2, 18px); gap: 7px; opacity: .65; }
+  .compass-ticks span { display: block; height: 1px; width: 18px; background: #b2ddd4; transform-origin: right center; }
+  .compass-ticks span:nth-child(1) { transform: rotate(45deg); }
+  .compass-ticks span:nth-child(2) { transform: rotate(-45deg); }
+  .compass-ticks span:nth-child(3) { transform: rotate(-45deg); }
+  .compass-ticks span:nth-child(4) { transform: rotate(45deg); }
+  .brand-tick { display: inline-block; height: 1px; width: 14px; background: #0c7c74; }
+  .signal-rule { display: flex; align-items: center; gap: 10px; color: rgba(32,38,34,.4); font-size: 9px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+  .signal-rule i { display: block; height: 1px; flex: 1; background: linear-gradient(90deg, rgba(12,124,116,.6), rgba(12,124,116,0)); }
+  .animate-enter { animation: enter 420ms cubic-bezier(0.23,1,0.32,1) both; }
+
+  /* Map page styles */
+  .map-route-panel { box-shadow: -8px 0 32px rgba(31,37,31,0.08); }
+
+  /* Map container override for full-height */
+  .map-page-container .gm-style { border-radius: 0 !important; }
+
+  /* Smooth marker info card slide-up */
+  .marker-info-enter { animation: slideUp 320ms cubic-bezier(0.23,1,0.32,1) both; }
+
+  /* Route polyline pulse for safety route */
+  .safety-route-pulse { animation: routePulse 2s ease-in-out infinite; }
+
+  /* Filter tab active indicator */
+  .filter-tab-active { box-shadow: 0 4px 12px rgba(32,38,34,0.15); }
+}
+
+@keyframes enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+@keyframes slideUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+@keyframes routePulse { 0%, 100% { opacity: 0.85; } 50% { opacity: 0.5; } }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 1ms !important; transition-duration: 1ms !important; scroll-behavior: auto !important; } }
+
+/* Map page specific responsive adjustments */
+@media (max-width: 639px) {
+  .map-route-panel { box-shadow: 0 -8px 32px rgba(31,37,31,0.12); border-radius: 28px 28px 0 0; overflow: hidden; }
+}
