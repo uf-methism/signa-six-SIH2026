@@ -8,6 +8,9 @@ import { HazardNotificationListener } from "./components/HazardNotificationListe
 import { LocationProvider } from "./contexts/LocationContext";
 import { MapProvider } from "./contexts/MapContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { AuthProvider } from "./contexts/AuthContext";
+import { CustomCursor } from "./components/CustomCursor";
+import LandingPage from "./pages/LandingPage";
 import Home from "./pages/Home";
 import MapPage from "./pages/MapPage";
 import GuidesPage from "./pages/GuidesPage";
@@ -16,7 +19,9 @@ import DisasterPage from "./pages/DisasterPage";
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Home} />
+      <Route path="/" component={LandingPage} />
+      <Route path="/app" component={Home} />
+      <Route path="/explore" component={Home} />
       <Route path="/map" component={MapPage} />
       <Route path="/guides" component={GuidesPage} />
       <Route path="/disaster" component={DisasterPage} />
@@ -30,17 +35,19 @@ export default function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider defaultTheme="light">
-        <MapProvider>
-          <LocationProvider>
-            <TooltipProvider>
-              <Toaster />
-              <HazardNotificationListener />
-              <Router />
-            </TooltipProvider>
-          </LocationProvider>
-        </MapProvider>
+        <AuthProvider>
+          <MapProvider>
+            <LocationProvider>
+              <TooltipProvider>
+                <CustomCursor />
+                <Toaster />
+                <HazardNotificationListener />
+                <Router />
+              </TooltipProvider>
+            </LocationProvider>
+          </MapProvider>
+        </AuthProvider>
       </ThemeProvider>
     </ErrorBoundary>
   );
 }
-

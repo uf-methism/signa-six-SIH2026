@@ -5,9 +5,14 @@
 - [x] Reconciled the expanded PRD with the existing React + Tailwind static scaffold and kept the current deliverable focused on an interactive frontend prototype with typed mock/service-layer logic.
 - [x] Preserved the Civic Calm design system: Fraunces + Manrope, mineral canvas, Guardian Teal, ochre, ember red, editorial rails, and cartographic signal cues.
 - [x] Created typed demo data and deterministic utilities for places, Discovery Score factors, best-time signals, itinerary generation, emergency directory entries, and nearby assistance.
+- [x] Built `AuthContext` with session persistence, user role management, and 1-Tap SIH Judge Evaluator login state.
 
-## Completed product views
+## Completed product views & landing experience
 
+- [x] Built High-Converting Landing Page (`/`) with editorial Hero section, interactive 3D parallax card mockup, dual-pillar value proposition, and SIH tech stack spotlight.
+- [x] Built Auth Modal (`AuthModal.tsx`) with Sign In and Sign Up tabs, Zod schema validation, and **⚡ 1-Tap SIH Judge Demo Login** button.
+- [x] Implemented desktop Custom Cursor ring follower (`CustomCursor.tsx`) and Framer Motion 3D tilt micro-interactions.
+- [x] Configured wouter routing: `/` for Landing Page, `/app` & `/explore` for main Home view, `/map` for Safety Map, `/guides` for Verified Local Guides, `/disaster` for Disaster Resilience Network.
 - [x] Built responsive desktop navigation and mobile bottom navigation for Explore, Plan, Safety, Assistant, and Profile.
 - [x] Added a globally visible deterministic press-and-hold SOS control with a local-storage-backed demo activation state.
 - [x] Built Jaipur discovery content for Popular / Must Visit, Hidden Gem, Local Favorite, and Alternative classifications.
@@ -28,8 +33,8 @@
 
 ## Validation
 
-- [x] TypeScript check passes.
-- [x] Production build passes.
-- [x] Desktop and mobile screenshots verified.
+- [x] TypeScript check passes (`pnpm run check`).
+- [x] Production build passes (`pnpm run build`).
+- [x] Desktop and mobile responsive layouts verified.
 - [x] Reduced-motion CSS behavior and visible keyboard focus-compatible controls included.
 - [ ] Connect production Maps, weather, AI, authentication, database, notification, emergency dispatch, and moderation services in a full-stack deployment.

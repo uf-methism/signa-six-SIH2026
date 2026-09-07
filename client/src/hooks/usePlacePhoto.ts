@@ -1,3 +1,4 @@
+/// <reference types="@types/google.maps" />
 import { useState, useEffect } from "react";
 
 interface UsePlacePhotoOptions {
@@ -47,15 +48,15 @@ export function usePlacePhoto({
     }
 
     // 2. Try Google Places Service if google.maps is loaded
-    if (isGoogleKey && typeof window !== "undefined" && window.google?.maps?.places) {
+    if (isGoogleKey && typeof window !== "undefined" && (window as any).google?.maps?.places) {
       setIsLoading(true);
 
       try {
         const dummyElement = document.createElement("div");
-        const service = new window.google.maps.places.PlacesService(dummyElement);
+        const service = new (window as any).google.maps.places.PlacesService(dummyElement);
 
         const searchQuery = `${placeName} Jaipur Rajasthan`;
-        const request: google.maps.places.PlaceSearchRequest = {
+        const request: any = {
           query: searchQuery,
           fields: ["photos", "name", "geometry"],
         };
@@ -64,9 +65,9 @@ export function usePlacePhoto({
           request.locationBias = { lat, lng };
         }
 
-        service.findPlaceFromQuery(request, (results, status) => {
+        service.findPlaceFromQuery(request, (results: any, status: any) => {
           if (
-            status === window.google.maps.places.PlacesServiceStatus.OK &&
+            status === (window as any).google.maps.places.PlacesServiceStatus.OK &&
             results &&
             results[0]?.photos &&
             results[0].photos.length > 0
