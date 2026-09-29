@@ -1,0 +1,17 @@
+# DISHA B2B Hospitality Intelligence & Guest Companion Platform
+# Web Crawling & Indexing Policy
+
+User-agent: *
+Allow: /
+Allow: /app
+Allow: /map
+Allow: /guides
+Allow: /disaster
+
+Disallow: /api/
+Disallow: /admin/
+Disallow: /private/
+
+# Host and Sitemap Specification
+Host: https://disha.hospitality.ai
+Sitemap: https://disha.hospitality.ai/sitemap.xml

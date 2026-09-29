@@ -3,6 +3,7 @@ import { Link, useLocation } from "wouter";
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { AuthModal } from "@/components/AuthModal";
+import { SEOHead } from "@/components/SEOHead";
 import {
   Zap,
   Shield,
@@ -78,6 +79,12 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-[#f6f3ed] text-ink selection:bg-[#0C7C74]/20 selection:text-[#0C7C74] font-sans relative overflow-x-hidden">
+      <SEOHead
+        title="Disha — AI Hospitality Intelligence & Guest Companion"
+        description="Transforming hotel stay management, guest context intelligence, and safety operations for heritage tourism properties in Jaipur."
+        canonicalPath="/"
+        breadcrumbs={[{ name: "Home", item: "/" }]}
+      />
       {/* Background Cartographic Signals & Wash */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-radial from-[#0C7C74]/15 via-[#0C7C74]/5 to-transparent rounded-full blur-3xl pointer-events-none -z-10" />
       <div className="absolute top-[400px] left-[-100px] w-[600px] h-[600px] bg-radial from-amber/15 via-amber/5 to-transparent rounded-full blur-3xl pointer-events-none -z-10" />

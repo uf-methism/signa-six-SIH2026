@@ -56,6 +56,7 @@ import { ContextIntelligencePanel } from "@/components/ContextIntelligencePanel"
 import { useWeatherMonitor } from "@/lib/weatherService";
 import { useLocationContext, getDistanceKm } from "@/contexts/LocationContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { SEOHead } from "@/components/SEOHead";
 import {
   authorities,
   bestTime,
@@ -291,6 +292,15 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-[#FAF8F5] text-ink pb-28">
+      <SEOHead
+        title="Guest Companion & Command Center — Disha Hospitality"
+        description="Real-time guest stay companion, AI service ticket lifecycle engine, property contextual intelligence, and staff command center."
+        canonicalPath="/app"
+        breadcrumbs={[
+          { name: "Home", item: "/" },
+          { name: "App", item: "/app" },
+        ]}
+      />
       {renderHeader()}
 
       <main className="mx-auto max-w-7xl px-4 md:px-8">
@@ -1940,7 +1950,7 @@ function PageIntro({ eyebrow, title, body, icon }: { eyebrow: string; title: str
     <div className="mb-8 flex flex-col justify-between gap-5 border-b border-ink/8 pb-6 sm:flex-row sm:items-end">
       <div>
         <p className="section-kicker text-teal">{eyebrow}</p>
-        <h1 className="mt-2 max-w-3xl font-display text-[clamp(2.6rem,6vw,5.2rem)] leading-[0.9] tracking-[-0.06em]">{title}</h1>
+        <h2 className="mt-2 max-w-3xl font-display text-[clamp(2.6rem,6vw,5.2rem)] leading-[0.9] tracking-[-0.06em]">{title}</h2>
         <p className="mt-4 max-w-xl text-sm leading-6 text-ink/60 sm:text-base">{body}</p>
       </div>
       <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-[#e5f0ec] text-teal">{icon}</div>

@@ -1,0 +1,25 @@
+# DISHA — AI Hospitality Intelligence & Tourist Companion Platform
+
+> DISHA is an enterprise B2B hospitality intelligence system and intelligent guest companion built for luxury hotels, resorts, and tourism ecosystems in heritage destinations like Jaipur, Rajasthan.
+
+## Core Capabilities
+
+- **Intelligent Digital Companion**: Provides guests staying at luxury properties with hyper-personalized contextual itineraries, weather risk awareness, real-time service requests, and curated cultural experiences.
+- **Hotel Command Center**: Real-time operational dashboard for front desk staff, operations managers, and property directors featuring live SLA monitoring, staff assignment, and emergency incident dispatch.
+- **Service Request Lifecycle Engine**: 5-state machine (`New` → `Accepted` → `In Progress` → `Completed` → `Closed`) for guest service tickets with automated AI category classification and SLA priority scoring.
+- **Environmental & Safety Intelligence Layer**: Monitors hyper-local weather alerts, crowd mobility, route obstructions, and property hazard notifications to automatically trigger guest advisories and property management alerts.
+- **Analytics & Management Dashboard**: Operational KPI tracking including request completion rates, response/resolution times, CSAT/NPS trend analysis, demand forecasting, and AI executive summaries.
+
+## Core Modules & Key URLs
+
+- Primary Landing: https://disha.hospitality.ai/
+- Guest Experience Dashboard: https://disha.hospitality.ai/app
+- Interactive Experience & Safety Map: https://disha.hospitality.ai/map
+- Jaipur Heritage Guides & Cultural Insights: https://disha.hospitality.ai/guides
+- Emergency Response & Disaster Management: https://disha.hospitality.ai/disaster
+
+## Architecture & Technology Stack
+
+- **Frontend**: React 18 with TypeScript, Vite build system, Tailwind CSS, Framer Motion, Recharts, Wouter routing.
+- **State & Context**: Context API for Map, Location, Auth, and Theme state management.
+- **Security & Data**: Schema validation via Zod, normalized context object for environmental and guest state synthesis.

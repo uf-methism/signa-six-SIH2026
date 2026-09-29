@@ -29,6 +29,7 @@ import { toast } from "sonner";
 import { Link } from "wouter";
 import { InteractiveMap, type MapMarkerData } from "@/components/Map";
 import { emergencyPlaces, places, type Place } from "@/lib/travelData";
+import { SEOHead } from "@/components/SEOHead";
 
 type MapCategoryFilter = "All" | "Must Visit" | "Hidden Gems" | "Safety & Emergency" | "Food";
 type RouteMode = "fastest" | "balanced" | "safety";
@@ -154,6 +155,15 @@ export default function MapPage() {
 
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-[#FAF8F5] text-ink flex flex-col">
+      <SEOHead
+        title="Jaipur Safety & Interactive Experience Map — Disha"
+        description="Interactive map with safety-aware routing, emergency hub locations, crowd levels, and real-time hazard corridors in Jaipur."
+        canonicalPath="/map"
+        breadcrumbs={[
+          { name: "Home", item: "/" },
+          { name: "Interactive Map", item: "/map" },
+        ]}
+      />
       {/* Top Header Bar */}
       <header className="absolute top-0 inset-x-0 z-30 flex items-center justify-between px-4 py-3 bg-white/90 backdrop-blur-md border-b border-ink/10">
         <div className="flex items-center gap-3">

@@ -151,7 +151,7 @@ export function VolunteerChatDrawer({ volunteer, onClose }: VolunteerChatDrawerP
           {isTyping && (
             <div className="flex gap-2 items-end">
               <div className="h-8 w-8 shrink-0 overflow-hidden rounded-full border border-ink/10 bg-slate-100">
-                <img src={volunteer.photo} alt="" className="h-full w-full object-cover" />
+                <img src={volunteer.photo} alt={volunteer.name} className="h-full w-full object-cover" />
               </div>
               <div className="rounded-2xl rounded-tl-sm bg-white border border-ink/8 px-4 py-3 shadow-sm">
                 <span className="flex items-center gap-1">

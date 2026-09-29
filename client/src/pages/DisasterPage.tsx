@@ -42,6 +42,7 @@ import { useWeatherMonitor, mockFallbackWeather } from "@/lib/weatherService";
 import { useLocationContext, getDistanceKm } from "@/contexts/LocationContext";
 import { InteractiveMap, type MapMarkerData } from "@/components/Map";
 import { PlaceImage } from "@/components/PlaceImage";
+import { SEOHead } from "@/components/SEOHead";
 
 export default function DisasterPage() {
   const { userLocation, locationName, isLiveGPS, refreshLocation, formatDistance, formatTravelTime } =
@@ -263,6 +264,15 @@ export default function DisasterPage() {
 
   return (
     <div className="min-h-screen bg-[#FAF8F5] text-stone-800 font-sans antialiased selection:bg-amber-500/20">
+      <SEOHead
+        title="Emergency Response & Disaster Safety Protocols — Disha"
+        description="Live disaster alerts, emergency shelter finder, SOS dispatch, offline SMS safety broadcast, and multi-agency coordination in Jaipur."
+        canonicalPath="/disaster"
+        breadcrumbs={[
+          { name: "Home", item: "/" },
+          { name: "Disaster Safety", item: "/disaster" },
+        ]}
+      />
       {/* ── Top Navigation Header ────────────────────────────────────────── */}
       <header className="sticky top-0 z-40 border-b border-amber-200/60 bg-white/85 backdrop-blur-md shadow-xs">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xsi="http://www.w3.org/2000/svg"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <url>
+    <loc>https://disha.hospitality.ai/</loc>
+    <lastmod>2026-09-29</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://disha.hospitality.ai/app</loc>
+    <lastmod>2026-09-29</lastmod>
+    <changefreq>always</changefreq>
+    <priority>0.95</priority>
+  </url>
+  <url>
+    <loc>https://disha.hospitality.ai/map</loc>
+    <lastmod>2026-09-29</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.90</priority>
+  </url>
+  <url>
+    <loc>https://disha.hospitality.ai/guides</loc>
+    <lastmod>2026-09-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://disha.hospitality.ai/disaster</loc>
+    <lastmod>2026-09-29</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.80</priority>
+  </url>
+</urlset>

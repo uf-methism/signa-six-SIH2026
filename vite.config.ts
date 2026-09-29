@@ -252,6 +252,18 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    sourcemap: false,
+    chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          "vendor-react": ["react", "react-dom", "wouter"],
+          "vendor-icons": ["lucide-react"],
+          "vendor-recharts": ["recharts"],
+          "vendor-motion": ["framer-motion"],
+        },
+      },
+    },
   },
   server: {
     port: 3000,
