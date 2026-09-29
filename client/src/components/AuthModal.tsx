@@ -51,7 +51,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultTa
   };
 
   const handleSignUpSubmit = (data: SignUpFormValues) => {
-    signup(data.name, data.email, data.language);
+    signup(data.name, data.email, "Guest", data.language);
     onClose();
     setLocation("/app");
   };

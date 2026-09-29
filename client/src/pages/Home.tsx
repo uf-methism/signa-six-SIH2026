@@ -9,6 +9,7 @@ import {
   Bookmark,
   BookmarkCheck,
   Bot,
+  Building2,
   Check,
   ChevronRight,
   CircleHelp,
@@ -50,35 +51,40 @@ import { toast } from "sonner";
 import { Link } from "wouter";
 import { DemoBar } from "@/components/DemoBar";
 import { DisasterAlertModal } from "@/components/DisasterAlertModal";
+import { HotelCommandCenter } from "@/components/HotelCommandCenter";
+import { ContextIntelligencePanel } from "@/components/ContextIntelligencePanel";
 import { useWeatherMonitor } from "@/lib/weatherService";
 import { useLocationContext, getDistanceKm } from "@/contexts/LocationContext";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   authorities,
   bestTime,
+  CATEGORY_SLA_MINUTES,
+  classifyServiceRequestText,
   createItinerary,
+  currentProperty,
   getGoodRightNow,
+  hotelServicesCatalog,
+  initialServiceTickets,
   nearbyHelp,
   places,
+  sampleGuestStay,
   scoreFactors,
   shuffleItinerary,
   type DemoContext,
   type Place,
+  type ServiceTicket,
+  type ServiceTicketCategory,
 } from "@/lib/travelData";
 
-type Tab = "Explore" | "Plan" | "Safety" | "Assistant" | "Profile";
-type FilterLabel = "All places" | "Popular / Must Visit" | "Hidden Gem" | "Local Favorite" | "Trending" | "Alternative";
+export type GuestTab = "Home" | "Concierge" | "Services" | "Explore" | "Safety" | "Profile";
+export type StaffTab = "Command Center" | "Requests" | "Incidents" | "Guests" | "Operations" | "Analytics";
+export type ManagerTab = "Command Center" | "Operations" | "Intelligence" | "Analytics" | "Incidents" | "Settings";
 
-const filterLabels: FilterLabel[] = ["All places", "Popular / Must Visit", "Hidden Gem", "Local Favorite", "Trending", "Alternative"];
+export type ActiveTab = GuestTab | StaffTab | ManagerTab;
 
-const navItems = [
-  { label: "Explore", icon: Compass, type: "tab" as const, tab: "Explore" as Tab },
-  { label: "Map", icon: Navigation, type: "link" as const, href: "/map" },
-  { label: "Guides", icon: Users, type: "link" as const, href: "/guides" },
-  { label: "Disaster", icon: ShieldAlert, type: "link" as const, href: "/disaster" },
-  { label: "Plan", icon: Route, type: "tab" as const, tab: "Plan" as Tab },
-  { label: "Safety", icon: ShieldCheck, type: "tab" as const, tab: "Safety" as Tab },
-  { label: "Assistant", icon: Bot, type: "tab" as const, tab: "Assistant" as Tab },
-];
+const filterLabels = ["All Experiences", "Resort Excursion", "Quiet Walk", "Handicrafts & Dining", "Sunset Drinks"] as const;
+type FilterLabel = typeof filterLabels[number];
 
 const pillClass = "inline-flex items-center gap-1.5 rounded-full border border-ink/10 bg-white/80 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-ink/70";
 
@@ -95,20 +101,28 @@ function PlaceImage({ src, alt, className = "" }: { src: string; alt: string; cl
   );
 }
 
-
 export default function Home() {
-  const [tab, setTab] = useState<Tab>("Explore");
+  const { user, activeRole, setActiveRole } = useAuth();
+  const [guestTab, setGuestTab] = useState<GuestTab>("Home");
+  const [staffTab, setStaffTab] = useState<StaffTab>("Command Center");
+  const [managerTab, setManagerTab] = useState<ManagerTab>("Command Center");
   const [demoOpen, setDemoOpen] = useState(false);
   const [selected, setSelected] = useState<Place | null>(null);
   const [scoreOpen, setScoreOpen] = useState(false);
+  const [serviceTickets, setServiceTickets] = useState<ServiceTicket[]>(initialServiceTickets);
+  const [newTicketTitle, setNewTicketTitle] = useState("");
+  const [newTicketCategory, setNewTicketCategory] = useState("Housekeeping");
+  const [newTicketDetails, setNewTicketDetails] = useState("");
+  const [requestModalOpen, setRequestModalOpen] = useState(false);
+
   const [context, setContext] = useState<DemoContext>({
     time: "Morning",
     weather: "Clear",
     crowd: "Low",
-    location: "Jaipur",
+    location: "The Amber Heritage Resort & Spa",
     alert: false,
     disasterAlert: false,
-    authorityVerified: false,
+    authorityVerified: true,
   });
   const [hours, setHours] = useState(4);
   const [startTime, setStartTime] = useState(() => {
@@ -226,35 +240,49 @@ export default function Home() {
   }
 
   function renderHeader() {
+    const roleLabel = activeRole === "Guest" ? `${user?.roomNumber ?? "Suite"} · Guest Stay` : activeRole === "Staff" ? "Staff Operations Queue" : "Hotel Management Console";
     return (
       <header className="sticky top-0 z-30 border-b border-ink/8 bg-white/90 backdrop-blur-xl mb-4">
+        {demoOpen && <DemoBar context={context} setContext={setContext} onClose={() => setDemoOpen(false)} />}
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 md:px-8">
           <div className="flex items-center gap-3">
-            <div className="brand-mark grid h-10 w-10 place-items-center rounded-[15px] bg-teal text-paper shadow-[0_10px_24px_rgba(12,124,116,0.18)]">
-              <img src="/manus-storage/travel-guardian-mark_d4a7b0f5.png" alt="" className="h-7 w-7 object-contain" />
+            <div className="grid h-10 w-10 place-items-center rounded-[15px] bg-[#0C7C74] text-paper shadow-[0_10px_24px_rgba(12,124,116,0.18)]">
+              <Building2 size={20} className="text-paper" />
             </div>
-            <div className="brand-lockup">
+            <div>
               <div className="font-display text-[20px] font-semibold leading-none tracking-[-0.055em]">DISHA</div>
-              <div className="mt-1 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-ink/42">
-                <span className="brand-tick" /> Jaipur · SIH Demo Mode
+              <div className="mt-0.5 text-[10px] font-bold uppercase tracking-[0.16em] text-[#0C7C74]">
+                Hospitality Intelligence
               </div>
             </div>
           </div>
 
+          <div className="hidden md:flex items-center gap-1.5 rounded-2xl border border-ink/10 bg-[#f6f3ed] px-1.5 py-1">
+            {(["Guest", "Staff", "Manager"] as const).map((r) => (
+              <button
+                key={r}
+                onClick={() => setActiveRole(r)}
+                className={`rounded-xl px-3 py-1.5 text-[11px] font-bold transition cursor-pointer ${
+                  activeRole === r ? "bg-[#0C7C74] text-white shadow-sm" : "text-ink/60 hover:text-ink"
+                }`}
+              >
+                {r === "Guest" ? "Guest Portal" : r === "Staff" ? "Staff Queue" : "Ops & Admin"}
+              </button>
+            ))}
+          </div>
+
           <div className="flex items-center gap-2">
-            <span className={`${pillClass} hidden sm:inline-flex`}>
-              <LocateFixed size={12} /> Amber Fort Context
+            <span className={`${pillClass} hidden sm:inline-flex text-[#0C7C74] border-[#0C7C74]/20`}>
+              <Building2 size={12} /> {roleLabel}
             </span>
             <button
               onClick={() => setDemoOpen((v) => !v)}
-              className="rounded-full border border-ink/10 bg-white px-3.5 py-2 text-[11px] font-bold uppercase tracking-[0.14em] text-ink/75 transition hover:border-teal hover:text-teal shadow-sm"
+              className="rounded-full border border-ink/10 bg-white px-3.5 py-2 text-[11px] font-bold uppercase tracking-[0.14em] text-ink/75 transition hover:border-[#0C7C74] hover:text-[#0C7C74] shadow-sm cursor-pointer"
             >
-              {demoOpen ? "Hide SIH Demo Bar" : "SIH Demo Bar"}
+              {demoOpen ? "Hide Demo Bar" : "SIH Demo Bar"}
             </button>
           </div>
         </div>
-
-        {demoOpen && <DemoBar context={context} setContext={setContext} onClose={() => setDemoOpen(false)} />}
       </header>
     );
   }
@@ -268,70 +296,87 @@ export default function Home() {
       <main className="mx-auto max-w-7xl px-4 md:px-8">
         {/* Mobile Context bar */}
         <div className="mb-4 flex items-center justify-between lg:hidden">
-          <button onClick={() => setDemoOpen((v) => !v)} className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.16em] text-ink/50">
-            <Radio size={13} className={context.alert ? "text-ember" : "text-teal"} />
-            {context.alert ? "Simulated incident active" : "SIH demo controls"}
+          <button onClick={() => setDemoOpen((v) => !v)} className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.16em] text-ink/50 cursor-pointer">
+            <Radio size={13} className={context.alert ? "text-ember" : "text-[#0C7C74]"} />
+            {context.alert ? "Environmental hazard active" : "DISHA Demo Controls"}
           </button>
           <span className="text-[11px] font-semibold text-ink/40">
-            {context.time} · {context.crowd} crowd
+            {context.time} · {context.crowd === "Low" ? "45%" : context.crowd === "High" ? "85%" : "100%"} occupancy
           </span>
         </div>
 
-        {/* Safe After Dark Warning Banner */}
+        {/* Environmental Weather Advisory Banner */}
         {isNight && (
-          <div className="mb-5 flex items-center gap-3 rounded-2xl border border-ember/30 bg-ember/10 p-4 text-sm text-ember animate-enter">
-            <Moon size={18} className="shrink-0" />
+          <div className="mb-5 flex items-center gap-3 rounded-2xl border border-amber-300/40 bg-amber-50/80 p-4 text-sm text-amber-800 animate-enter">
+            <Moon size={18} className="shrink-0 text-amber-600" />
             <div>
-              <span className="font-bold">Safe After Dark Mode Active:</span> Night illumination route signals enabled. Sticking to well-lit commercial boulevards and official safety checkpoints.
+              <span className="font-bold">Evening Guest Advisory:</span> Resort pathways lit. Outdoor dining available. Emergency assistance desk staffed 24/7.
             </div>
           </div>
         )}
 
-        {/* Alert Banner */}
+        {/* Environmental Hazard Alert Banner */}
         {context.alert && (
-          <div className="mb-5 flex items-center gap-3 rounded-2xl border border-ember/20 bg-ember/8 px-4 py-3 text-sm text-ember">
-            <AlertTriangle size={17} />
+          <div className="mb-5 flex items-center gap-3 rounded-2xl border border-amber-400/30 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            <AlertTriangle size={17} className="text-amber-600" />
             <span>
-              <b>Demo alert:</b> a reported road hazard is affecting one route near Amer Fort. This is simulated data.
+              <b>Environmental Advisory:</b> Heavy rain signal near resort grounds. Outdoor excursions temporarily paused — indoor amenities available.
             </span>
-            <button className="ml-auto" onClick={() => setContext((c) => ({ ...c, alert: false }))}>
+            <button className="ml-auto cursor-pointer" onClick={() => setContext((c) => ({ ...c, alert: false }))}>
               <X size={16} />
             </button>
           </div>
         )}
 
-        {tab === "Explore" && (
+        {activeRole === "Guest" && guestTab === "Home" && (
+          <GuestHomeView
+            context={context}
+            recommendation={recommendation}
+            onTabChange={setGuestTab}
+            onSelectPlace={(place) => { setSelected(place); setScoreOpen(false); }}
+          />
+        )}
+        {activeRole === "Guest" && guestTab === "Concierge" && (
+          <AssistantView hours={hours} context={context} />
+        )}
+        {activeRole === "Guest" && guestTab === "Services" && (
+          <ServicesView
+            tickets={serviceTickets}
+            setTickets={setServiceTickets}
+          />
+        )}
+        {activeRole === "Guest" && guestTab === "Explore" && (
           <ExploreView
             recommendation={recommendation}
             context={context}
             places={places}
-            onSelect={(place) => {
-              setSelected(place);
-              setScoreOpen(false);
-            }}
-            onScore={(place) => {
-              setSelected(place);
-              setScoreOpen(true);
-            }}
+            onSelect={(place) => { setSelected(place); setScoreOpen(false); }}
+            onScore={(place) => { setSelected(place); setScoreOpen(true); }}
           />
         )}
-        {tab === "Plan" && <PlanView hours={hours} setHours={setHours} startTime={startTime} setStartTime={setStartTime} context={context} itinerary={itinerary} />}
-        {tab === "Safety" && (
+        {activeRole === "Guest" && guestTab === "Safety" && (
           <SafetyView
             sharing={false}
             setSharing={() => {}}
             checkIn={false}
             setCheckIn={() => {}}
             onAlert={() => setReportOpen(true)}
-            setTab={setTab}
+            setTab={() => {}}
           />
         )}
-        {tab === "Assistant" && <AssistantView hours={hours} context={context} />}
-        {tab === "Profile" && <ProfileView />}
+        {activeRole === "Guest" && guestTab === "Profile" && <ProfileView />}
+
+        {(activeRole === "Staff" || activeRole === "Manager" || activeRole === "SIH Evaluator") && (
+          <HotelCommandCenter
+            context={context}
+            tickets={serviceTickets}
+            setTickets={setServiceTickets}
+            activeRole={activeRole}
+          />
+        )}
       </main>
 
-      <DesktopNav tab={tab} setTab={setTab} />
-      <MobileNav tab={tab} setTab={setTab} />
+      <GuestBottomNav activeRole={activeRole} guestTab={guestTab} setGuestTab={setGuestTab} />
 
       {/* Weather & Disaster Alert Modal */}
       <DisasterAlertModal
@@ -468,7 +513,7 @@ function ExploreView({
   const { userLocation, locationName, isLiveGPS, refreshLocation, formatDistance, formatTravelTime } =
     useLocationContext();
 
-  const [activeFilter, setActiveFilter] = useState<FilterLabel>("All places");
+  const [activeFilter, setActiveFilter] = useState<FilterLabel>("All Experiences");
   const [goodNowActive, setGoodNowActive] = useState(false);
   const [sortByDistance, setSortByDistance] = useState(false);
 
@@ -491,7 +536,7 @@ function ExploreView({
     if (goodNowActive) {
       result = getGoodRightNow(result as any) as any;
     }
-    if (activeFilter !== "All places") {
+    if (activeFilter !== "All Experiences") {
       result = result.filter((p) => p.category.toLowerCase() === activeFilter.toLowerCase());
     }
 
@@ -506,7 +551,7 @@ function ExploreView({
 
   function handleFilterClick(label: FilterLabel) {
     setActiveFilter(label);
-    if (label !== "All places") {
+    if (label !== "All Experiences") {
       setGoodNowActive(false);
     }
   }
@@ -514,7 +559,7 @@ function ExploreView({
   function handleGoodNow() {
     setGoodNowActive((prev) => {
       if (!prev) {
-        setActiveFilter("All places");
+        setActiveFilter("All Experiences");
         toast.success("Showing what's good right now");
       } else {
         toast("Showing all places");
@@ -531,13 +576,13 @@ function ExploreView({
         <div className="relative z-10 flex flex-col justify-between">
           <div>
             <div className="mb-4 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-[#b2ddd4]">
-              <span className="h-2 w-2 rounded-full bg-[#f1bd58]" /> Good day, Explorer
+              <span className="h-2 w-2 rounded-full bg-[#f1bd58]" /> Curated for Your Stay
             </div>
             <h1 className="max-w-[600px] font-display text-[clamp(2.8rem,7vw,5.5rem)] leading-[0.9] tracking-[-0.06em]">
-              Make room for the <em className="text-[#f1bd58]">unexpected.</em>
+              Discover the <em className="text-[#f1bd58]">area around you.</em>
             </h1>
             <p className="mt-5 max-w-[430px] text-sm leading-6 text-paper/65 sm:text-base">
-              A context-aware companion for better days in unfamiliar places. Start with what is good right now.
+              Context-aware local experience recommendations, filtered by weather, crowd, and time of day.
             </p>
           </div>
           <div className="mt-8 flex flex-wrap gap-2">
@@ -578,7 +623,7 @@ function ExploreView({
       {/* Filter Toolbar */}
       <div className="mt-10 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="section-kicker text-teal">Discovery, without the blind spots</p>
+          <p className="section-kicker text-teal">Experiences around the property</p>
           <h2 className="section-title">What's good right now?</h2>
         </div>
         <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
@@ -638,7 +683,7 @@ function ExploreView({
           <p className="font-display text-2xl tracking-[-0.04em] text-ink/50">No places match this filter</p>
           <button
             onClick={() => {
-              setActiveFilter("All places");
+              setActiveFilter("All Experiences");
               setGoodNowActive(false);
             }}
             className="mt-2 rounded-full bg-teal px-5 py-2.5 text-xs font-bold text-paper shadow hover:bg-teal/90 cursor-pointer"
@@ -1188,7 +1233,7 @@ function SafetyView({
   checkIn: boolean;
   setCheckIn: (v: boolean) => void;
   onAlert: () => void;
-  setTab: (tab: Tab) => void;
+  setTab: (tab: string) => void;
 }) {
   const { userLocation, formatDistance } = useLocationContext();
 
@@ -2024,31 +2069,64 @@ function PlaceSheet({
   );
 }
 
-function DesktopNav({ tab, setTab }: { tab: Tab; setTab: (tab: Tab) => void }) {
-  return (
-    <nav className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 hidden lg:flex items-center gap-1 rounded-full border border-ink/10 bg-white/90 p-1.5 shadow-xl backdrop-blur-md">
-      {navItems.map((item) => {
-        const Icon = item.icon;
-        if (item.type === "link") {
+
+function GuestBottomNav({
+  activeRole,
+  guestTab,
+  setGuestTab,
+}: {
+  activeRole: string;
+  guestTab: GuestTab;
+  setGuestTab: (t: GuestTab) => void;
+}) {
+  const guestItems: { label: GuestTab; icon: React.ComponentType<{ size?: number; className?: string }> }[] = [
+    { label: "Home", icon: Building2 },
+    { label: "Concierge", icon: Bot },
+    { label: "Services", icon: HeartHandshake },
+    { label: "Explore", icon: Compass },
+    { label: "Safety", icon: ShieldCheck },
+  ];
+
+  const staffItems = [
+    { label: "Command Center", icon: Flame },
+    { label: "Requests", icon: Bell },
+    { label: "Incidents", icon: ShieldAlert },
+    { label: "Guests", icon: Users },
+    { label: "Analytics", icon: Radio },
+  ];
+
+  if (activeRole === "Staff" || activeRole === "Manager" || activeRole === "SIH Evaluator") {
+    return (
+      <nav className="fixed bottom-0 left-0 right-0 z-50 flex justify-around border-t border-ink/10 bg-[#0f2420]/95 px-2 py-2 backdrop-blur-md lg:hidden shadow-lg">
+        {staffItems.map((item) => {
+          const Icon = item.icon;
           return (
-            <Link
-              key={item.label}
-              href={item.href}
-              className="flex items-center gap-2 rounded-full px-4 py-2.5 text-xs font-bold text-ink/65 hover:text-teal hover:bg-paper transition duration-200"
-            >
-              <Icon size={15} /> {item.label}
-            </Link>
+            <button key={item.label} className="flex min-w-0 flex-col items-center gap-1 px-2 py-1 text-[9px] font-bold uppercase tracking-[0.08em] text-paper/50 hover:text-[#f1bd58]">
+              <Icon size={18} />
+              <span>{item.label}</span>
+            </button>
           );
-        }
+        })}
+      </nav>
+    );
+  }
+
+  return (
+    <nav className="fixed bottom-0 left-0 right-0 z-50 flex justify-around border-t border-ink/10 bg-white/95 px-2 py-2 backdrop-blur-md lg:hidden shadow-lg">
+      {guestItems.map((item) => {
+        const Icon = item.icon;
+        const active = guestTab === item.label;
         return (
           <button
             key={item.label}
-            onClick={() => setTab(item.tab)}
-            className={`flex items-center gap-2 rounded-full px-4 py-2.5 text-xs font-bold transition duration-200 ${
-              tab === item.tab ? "bg-ink text-paper shadow-sm" : "text-ink/65 hover:text-teal hover:bg-paper"
+            onClick={() => setGuestTab(item.label)}
+            className={`flex min-w-0 flex-col items-center gap-1 px-2 py-1 text-[9px] font-bold uppercase tracking-[0.08em] cursor-pointer ${
+              active ? "text-[#0C7C74]" : "text-ink/45"
             }`}
           >
-            <Icon size={15} /> {item.label}
+            <Icon size={18} />
+            <span>{item.label}</span>
+            {active && <span className="h-1 w-1 rounded-full bg-[#0C7C74]" />}
           </button>
         );
       })}
@@ -2056,37 +2134,490 @@ function DesktopNav({ tab, setTab }: { tab: Tab; setTab: (tab: Tab) => void }) {
   );
 }
 
-function MobileNav({ tab, setTab }: { tab: Tab; setTab: (tab: Tab) => void }) {
+// ──────────────────────────────────────────────────────────────────────────────
+// Guest Home View — personalized stay overview replacing tourism Explore hero
+// ──────────────────────────────────────────────────────────────────────────────
+function GuestHomeView({
+  context,
+  recommendation,
+  onTabChange,
+  onSelectPlace,
+}: {
+  context: DemoContext;
+  recommendation: ReturnType<typeof bestTime>;
+  onTabChange: (tab: GuestTab) => void;
+  onSelectPlace: (p: Place) => void;
+}) {
+  const { userLocation, formatDistance } = useLocationContext();
+
+  const occupancyPct = context.crowd === "Low" ? 45 : context.crowd === "High" ? 85 : 100;
+
+  const quickActions = [
+    { label: "Request Service", icon: HeartHandshake, tab: "Services" as const, color: "bg-[#0C7C74]/10 text-[#0C7C74] border-[#0C7C74]/20" },
+    { label: "AI Concierge", icon: Bot, tab: "Concierge" as const, color: "bg-amber-50 text-amber-800 border-amber-200" },
+    { label: "Local Experiences", icon: Compass, tab: "Explore" as const, color: "bg-blue-50 text-blue-800 border-blue-200" },
+    { label: "Guest Safety", icon: ShieldCheck, tab: "Safety" as const, color: "bg-red-50 text-red-800 border-red-200" },
+  ];
+
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 flex justify-around border-t border-ink/10 bg-white/95 px-2 py-2 backdrop-blur-md lg:hidden shadow-lg">
-      {navItems.map((item) => {
-        const Icon = item.icon;
-        if (item.type === "link") {
-          return (
-            <Link
-              key={item.label}
-              href={item.href}
-              className="flex min-w-0 flex-col items-center gap-1 px-2 py-1 text-[9px] font-bold uppercase tracking-[0.08em] text-ink/45 hover:text-teal"
+    <div className="animate-enter space-y-6 pb-6">
+      {/* Stay Welcome Banner */}
+      <section className="relative overflow-hidden rounded-[28px] bg-[#142624] p-6 text-paper sm:p-8">
+        <div className="hero-wash" />
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+          <div>
+            <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-[#b2ddd4]">
+              {currentProperty.name}
+            </div>
+            <h1 className="font-display text-3xl sm:text-4xl font-bold tracking-[-0.04em] leading-tight">
+              Your Stay, <em className="text-[#f1bd58] not-italic">Right Now.</em>
+            </h1>
+            <p className="mt-2 text-sm text-paper/70">
+              {recommendation.label} — {recommendation.detail}
+            </p>
+          </div>
+          <div className="flex flex-col items-end gap-2 shrink-0">
+            <div className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-center min-w-[100px]">
+              <div className="text-2xl font-bold font-display text-[#f1bd58]">{sampleGuestStay.roomNumber}</div>
+              <div className="text-[10px] uppercase tracking-widest text-paper/60 mt-0.5">Your Suite</div>
+            </div>
+            <div className="text-[10px] text-paper/50 font-bold">
+              Check-out: {new Date(sampleGuestStay.checkOut).toLocaleDateString("en-GB", { day: "2-digit", month: "short" })}
+            </div>
+          </div>
+        </div>
+
+        {/* Context Pills */}
+        <div className="relative z-10 mt-5 flex flex-wrap gap-2">
+          <span className="rounded-full bg-white/10 border border-white/10 px-3 py-1.5 text-xs font-bold">
+            <Clock3 size={12} className="mr-1.5 inline" /> {context.time}
+          </span>
+          <span className="rounded-full bg-white/10 border border-white/10 px-3 py-1.5 text-xs font-bold">
+            <Building2 size={12} className="mr-1.5 inline" /> {occupancyPct}% Occupancy
+          </span>
+          <span className={`rounded-full border px-3 py-1.5 text-xs font-bold ${context.weather === "Heavy Rain" ? "bg-blue-500/20 border-blue-400/30 text-blue-200" : "bg-white/10 border-white/10"}`}>
+            <CloudRain size={12} className="mr-1.5 inline" /> {context.weather === "Heavy Rain" ? "Heavy Rain" : "Clear Skies"}
+          </span>
+        </div>
+      </section>
+
+      {/* Quick Action Grid */}
+      <section>
+        <h2 className="font-display text-xl font-bold tracking-tight mb-3">What do you need?</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {quickActions.map(({ label, icon: Icon, tab, color }) => (
+            <button
+              key={label}
+              onClick={() => onTabChange(tab)}
+              className={`flex flex-col items-start gap-3 rounded-2xl border p-4 transition hover:shadow-md cursor-pointer ${color}`}
             >
-              <Icon size={18} />
-              <span>{item.label}</span>
-            </Link>
-          );
-        }
-        return (
-          <button
-            key={item.label}
-            onClick={() => setTab(item.tab)}
-            className={`flex min-w-0 flex-col items-center gap-1 px-2 py-1 text-[9px] font-bold uppercase tracking-[0.08em] ${
-              tab === item.tab ? "text-teal" : "text-ink/45"
-            }`}
-          >
-            <Icon size={18} />
-            <span>{item.label}</span>
-            {tab === item.tab && <span className="h-1 w-1 rounded-full bg-teal" />}
+              <div className="w-9 h-9 rounded-xl bg-white/60 flex items-center justify-center">
+                <Icon size={18} />
+              </div>
+              <span className="text-xs font-bold leading-tight">{label}</span>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* Stay Context Intelligence */}
+      <ContextIntelligencePanel demoContext={context} />
+
+      {/* Curated Local Experiences */}
+      <section>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-display text-xl font-bold tracking-tight">Recommended for Your Stay</h2>
+          <button onClick={() => onTabChange("Explore")} className="text-xs font-bold text-[#0C7C74] hover:underline cursor-pointer">
+            View All
           </button>
-        );
-      })}
-    </nav>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {places.slice(0, 2).map((place) => (
+            <button
+              key={place.id}
+              onClick={() => onSelectPlace(place)}
+              className="rounded-2xl border border-ink/10 bg-white p-4 text-left flex items-start gap-4 hover:shadow-md transition cursor-pointer group"
+            >
+              <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0">
+                <PlaceImage src={place.image} alt={place.name} className="w-full h-full" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-[9px] font-bold uppercase tracking-wider bg-[#0C7C74]/10 text-[#0C7C74] rounded px-1.5 py-0.5">
+                    {place.category.split(" / ")[0]}
+                  </span>
+                  <span className="text-[10px] text-ink/50">{place.duration}</span>
+                </div>
+                <div className="font-display text-base font-bold truncate">{place.name}</div>
+                <div className="text-xs text-ink/60 mt-0.5 line-clamp-2">{place.signal}</div>
+              </div>
+              <div className="w-10 h-10 shrink-0 rounded-xl bg-amber-100 grid place-items-center font-bold text-sm text-amber-900">
+                {place.score}
+              </div>
+            </button>
+          ))}
+        </div>
+      </section>
+    </div>
   );
 }
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Services View — Guest digital companion & request lifecycle hub
+// ──────────────────────────────────────────────────────────────────────────────
+function ServicesView({
+  tickets,
+  setTickets,
+}: {
+  tickets: ServiceTicket[];
+  setTickets: React.Dispatch<React.SetStateAction<ServiceTicket[]>>;
+}) {
+  const [activeCategory, setActiveCategory] = useState<string>("All");
+  const [showCustomModal, setShowCustomModal] = useState<boolean>(false);
+  const [customTitle, setCustomTitle] = useState<string>("");
+  const [customDetails, setCustomDetails] = useState<string>("");
+  const [customCategory, setCustomCategory] = useState<ServiceTicketCategory>("Housekeeping");
+  const [customPreferredTime, setCustomPreferredTime] = useState<string>("Immediate");
+
+  const categories = ["All", "Housekeeping", "Room Service", "Maintenance", "Transport", "Laundry", "Amenities", "Special Assistance", "Other"];
+
+  // Real-time AI classification suggestion as guest types note
+  const aiSuggestion = classifyServiceRequestText(`${customTitle} ${customDetails}`);
+
+  function handleCatalogRequest(service: typeof hotelServicesCatalog[0]) {
+    const timeFormatted = new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+    const slaLimit = CATEGORY_SLA_MINUTES[service.category as ServiceTicketCategory] || 15;
+
+    const newTicket: ServiceTicket = {
+      id: `tkt-${Date.now().toString().slice(-4)}`,
+      roomNumber: sampleGuestStay.roomNumber,
+      guestName: sampleGuestStay.guestName,
+      category: service.category as ServiceTicketCategory,
+      title: service.title,
+      details: service.description,
+      priority: service.category === "Maintenance" ? "Medium" : "Low",
+      status: "New",
+      assignedStaff: "Routing to Staff...",
+      timestamp: timeFormatted,
+      slaMinutes: slaLimit,
+      createdTimeMs: Date.now(),
+      history: [
+        {
+          timestamp: timeFormatted,
+          user: sampleGuestStay.guestName,
+          role: "Guest",
+          action: "Created",
+          note: `Requested ${service.title} via Service Catalog`,
+        },
+      ],
+    };
+    setTickets((prev) => [newTicket, ...prev]);
+    toast.success(`${service.title} requested! Track real-time status below.`);
+  }
+
+  function handleCustomRequestSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!customTitle) {
+      toast.error("Please enter a request title.");
+      return;
+    }
+    const timeFormatted = new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+    const slaLimit = CATEGORY_SLA_MINUTES[customCategory] || 15;
+
+    const newTicket: ServiceTicket = {
+      id: `tkt-${Date.now().toString().slice(-4)}`,
+      roomNumber: sampleGuestStay.roomNumber,
+      guestName: sampleGuestStay.guestName,
+      category: customCategory,
+      title: customTitle,
+      details: customDetails || "Guest custom service request",
+      priority: aiSuggestion.suggestedPriority || "Medium",
+      status: "New",
+      assignedStaff: "Unassigned",
+      timestamp: timeFormatted,
+      preferredTime: customPreferredTime,
+      slaMinutes: slaLimit,
+      createdTimeMs: Date.now(),
+      aiSuggestedCategory: aiSuggestion.suggestedCategory,
+      aiSuggestedPriority: aiSuggestion.suggestedPriority,
+      aiConfidence: aiSuggestion.confidence,
+      history: [
+        {
+          timestamp: timeFormatted,
+          user: sampleGuestStay.guestName,
+          role: "Guest",
+          action: "Created",
+          note: `Submitted custom request (Preferred: ${customPreferredTime})`,
+        },
+      ],
+    };
+
+    setTickets((prev) => [newTicket, ...prev]);
+    toast.success(`Request "${customTitle}" submitted to resort staff!`);
+    setShowCustomModal(false);
+    setCustomTitle("");
+    setCustomDetails("");
+  }
+
+  const filteredServices = activeCategory === "All"
+    ? hotelServicesCatalog
+    : hotelServicesCatalog.filter((s) => s.category === activeCategory);
+
+  return (
+    <div className="animate-enter space-y-6 pb-6 text-[#1c2e2a]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-[#0C7C74]">In-Room & Property Services</p>
+          <h2 className="font-display text-3xl font-bold tracking-tight text-ink mt-1">Request a Service</h2>
+          <p className="text-sm text-ink/60 mt-1">Context-aware guest assistance routed directly to hotel staff</p>
+        </div>
+        <button
+          onClick={() => setShowCustomModal(true)}
+          className="flex items-center gap-2 rounded-xl bg-[#0C7C74] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#09635d] transition shadow-md cursor-pointer shrink-0"
+        >
+          <Plus size={16} />
+          <span>Custom Request (AI Assisted)</span>
+        </button>
+      </div>
+
+      {/* Category Filter */}
+      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+        {categories.map((cat) => (
+          <button
+            key={cat}
+            onClick={() => setActiveCategory(cat)}
+            className={`whitespace-nowrap rounded-full px-4 py-2 text-xs font-bold transition cursor-pointer ${
+              activeCategory === cat ? "bg-[#0C7C74] text-white shadow" : "border border-ink/10 bg-white text-ink/60 hover:border-[#0C7C74]"
+            }`}
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
+
+      {/* Service Catalog */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {filteredServices.map((service) => (
+          <div key={service.id} className="rounded-2xl border border-ink/10 bg-white p-5 flex flex-col gap-3 shadow-sm hover:shadow-md transition">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="text-[10px] font-bold uppercase tracking-wider text-[#0C7C74] mb-1">{service.category}</div>
+                <div className="font-display text-base font-bold text-ink">{service.title}</div>
+                <div className="text-xs text-ink/60 mt-1 leading-relaxed">{service.description}</div>
+              </div>
+            </div>
+            <div className="flex items-center justify-between pt-2 border-t border-ink/5">
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-bold text-ink/70 bg-[#f6f3ed] rounded-full px-2.5 py-1">
+                  <Clock3 size={11} className="inline mr-1" /> {service.estMinutes} min
+                </span>
+                <span className={`text-xs font-bold ${service.price === "Complimentary" ? "text-[#0C7C74]" : "text-ink"}`}>
+                  {service.price}
+                </span>
+              </div>
+              <button
+                onClick={() => handleCatalogRequest(service)}
+                className="rounded-xl bg-[#0C7C74] px-4 py-2 text-xs font-bold text-white hover:bg-[#09635d] transition cursor-pointer"
+              >
+                Request
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Guest Active Requests & State Machine Status */}
+      {tickets.length > 0 && (
+        <section className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="font-display text-xl font-bold tracking-tight text-ink">Your Active Requests & Status</h3>
+            <span className="text-xs font-semibold text-ink/60">Live operational sync</span>
+          </div>
+          <div className="space-y-3">
+            {tickets.map((ticket) => (
+              <div key={ticket.id} className="rounded-2xl border border-ink/10 bg-white p-4 shadow-sm space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-sm text-ink">{ticket.title}</span>
+                    <span className="text-xs text-ink/50">· Room {ticket.roomNumber}</span>
+                  </div>
+                  <span
+                    className={`text-[10px] font-bold uppercase tracking-wider rounded-full px-2.5 py-1 ${
+                      ticket.status === "New"
+                        ? "bg-blue-100 text-blue-800"
+                        : ticket.status === "Accepted"
+                        ? "bg-amber-100 text-amber-800"
+                        : ticket.status === "In Progress"
+                        ? "bg-sky-100 text-sky-800"
+                        : ticket.status === "Completed"
+                        ? "bg-emerald-100 text-emerald-800"
+                        : "bg-gray-100 text-gray-700"
+                    }`}
+                  >
+                    {ticket.status}
+                  </span>
+                </div>
+
+                <p className="text-xs text-ink/70 leading-relaxed">{ticket.details}</p>
+
+                <div className="flex flex-wrap items-center justify-between gap-2 border-t border-ink/5 pt-2 text-[11px] text-ink/60">
+                  <div className="flex items-center gap-3">
+                    <span>Category: <strong>{ticket.category}</strong></span>
+                    <span>Assigned: <strong>{ticket.assignedStaff}</strong></span>
+                    {ticket.preferredTime && <span>Time: <strong>{ticket.preferredTime}</strong></span>}
+                  </div>
+                  <div className="font-mono text-[10px]">{ticket.timestamp}</div>
+                </div>
+
+                {/* Audit trail snippet */}
+                {ticket.history && ticket.history.length > 0 && (
+                  <div className="mt-2 rounded-xl bg-paper/50 p-2 text-[10px] space-y-1">
+                    <span className="font-bold text-ink/50 uppercase block">Latest Activity Log:</span>
+                    {ticket.history.slice(-2).map((h, i) => (
+                      <div key={i} className="flex items-center justify-between text-ink/70 font-mono">
+                        <span>↳ <strong>{h.action}</strong> by {h.user} ({h.role})</span>
+                        <span>{h.timestamp}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* CUSTOM REQUEST MODAL WITH AI CLASSIFICATION */}
+      {showCustomModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-enter">
+          <form onSubmit={handleCustomRequestSubmit} className="w-full max-w-lg rounded-[24px] bg-white p-6 shadow-2xl space-y-4 border border-ink/10">
+            <div className="flex items-center justify-between border-b border-ink/10 pb-3">
+              <div>
+                <h3 className="font-display text-xl font-bold text-ink">New Guest Service Request</h3>
+                <p className="text-xs text-ink/60">DISHA AI will classify & route your request</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowCustomModal(false)}
+                className="rounded-full p-1 text-ink/40 hover:bg-paper hover:text-ink transition cursor-pointer"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div>
+              <label className="text-[10px] font-bold uppercase tracking-wider text-ink/60 block mb-1">Request Title *</label>
+              <input
+                type="text"
+                required
+                placeholder="e.g. AC in room 204 is leaking water"
+                value={customTitle}
+                onChange={(e) => setCustomTitle(e.target.value)}
+                className="w-full rounded-xl border border-ink/15 p-2.5 text-xs font-bold text-ink focus:border-[#0C7C74] focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="text-[10px] font-bold uppercase tracking-wider text-ink/60 block mb-1">Details & Special Instructions</label>
+              <textarea
+                rows={3}
+                placeholder="Describe your request or issue..."
+                value={customDetails}
+                onChange={(e) => setCustomDetails(e.target.value)}
+                className="w-full rounded-xl border border-ink/15 p-2.5 text-xs font-sans text-ink focus:border-[#0C7C74] focus:outline-none"
+              />
+            </div>
+
+            {/* AI Classification Suggestion Card */}
+            {(customTitle || customDetails) && (
+              <div className="rounded-xl bg-amber-50 p-3 border border-amber-200/80 flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2">
+                  <Sparkles size={16} className="text-amber-600 shrink-0" />
+                  <div>
+                    <span className="font-bold text-amber-900">DISHA AI Assistant Recommendation:</span>
+                    <div className="text-amber-800 text-[11px]">
+                      Category: <strong>{aiSuggestion.suggestedCategory}</strong> · Priority: <strong>{aiSuggestion.suggestedPriority}</strong>
+                    </div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCustomCategory(aiSuggestion.suggestedCategory);
+                    toast.success("Applied AI recommended category!");
+                  }}
+                  className="rounded-lg bg-amber-600 text-white px-3 py-1.5 text-[10px] font-bold hover:bg-amber-700 transition cursor-pointer shrink-0"
+                >
+                  Apply AI Category
+                </button>
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-[10px] font-bold uppercase tracking-wider text-ink/60 block mb-1">Service Category</label>
+                <select
+                  value={customCategory}
+                  onChange={(e) => setCustomCategory(e.target.value as ServiceTicketCategory)}
+                  className="w-full rounded-xl border border-ink/15 p-2 text-xs font-bold text-ink focus:border-[#0C7C74] focus:outline-none"
+                >
+                  <option value="Housekeeping">Housekeeping</option>
+                  <option value="Room Service">Room Service</option>
+                  <option value="Maintenance">Maintenance</option>
+                  <option value="Transport">Transport</option>
+                  <option value="Laundry">Laundry</option>
+                  <option value="Amenities">Amenities</option>
+                  <option value="Special Assistance">Special Assistance</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold uppercase tracking-wider text-ink/60 block mb-1">Preferred Time</label>
+                <select
+                  value={customPreferredTime}
+                  onChange={(e) => setCustomPreferredTime(e.target.value)}
+                  className="w-full rounded-xl border border-ink/15 p-2 text-xs font-bold text-ink focus:border-[#0C7C74] focus:outline-none"
+                >
+                  <option value="Immediate">Immediate (ASAP)</option>
+                  <option value="Within 30 mins">Within 30 mins</option>
+                  <option value="This Evening">This Evening (18:00)</option>
+                  <option value="Tomorrow Morning">Tomorrow Morning</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-2 border-t border-ink/10">
+              <button
+                type="button"
+                onClick={() => setShowCustomModal(false)}
+                className="flex-1 rounded-xl border border-ink/15 py-2.5 text-xs font-bold text-ink/70 hover:bg-paper transition cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="flex-1 rounded-xl bg-[#0C7C74] py-2.5 text-xs font-bold text-white hover:bg-[#09635d] transition cursor-pointer"
+              >
+                Submit Request
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Hotel Command View — Staff/Manager operations hub (replaces DisasterPage)
+// ──────────────────────────────────────────────────────────────────────────────
+function HotelCommandView(props: {
+  context: DemoContext;
+  tickets: ServiceTicket[];
+  setTickets: React.Dispatch<React.SetStateAction<ServiceTicket[]>>;
+  activeRole: string;
+}) {
+  return <HotelCommandCenter {...props} />;
+}
+

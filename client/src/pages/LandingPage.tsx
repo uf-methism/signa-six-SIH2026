@@ -6,10 +6,11 @@ import { AuthModal } from "@/components/AuthModal";
 import {
   Zap,
   Shield,
-  Compass,
+  Building2,
   Sparkles,
   MapPin,
   Clock,
+  Compass,
   PhoneCall,
   AlertTriangle,
   ArrowRight,
@@ -23,11 +24,14 @@ import {
   ChevronRight,
   Radio,
   UserCheck,
+  Bot,
+  TrendingUp,
+  ShieldCheck,
 } from "lucide-react";
 
 export default function LandingPage() {
   const [, setLocation] = useLocation();
-  const { user, loginAsJudge, logout } = useAuth();
+  const { user, loginAsJudge, setActiveRole, logout } = useAuth();
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalTab, setAuthModalTab] = useState<"signin" | "signup">("signin");
 
@@ -50,8 +54,15 @@ export default function LandingPage() {
     mouseY.set(0);
   };
 
-  const handleLaunchJudgeDemo = () => {
+  const handleLaunchGuestPortal = () => {
     loginAsJudge();
+    setActiveRole("Guest");
+    setLocation("/app");
+  };
+
+  const handleLaunchOpsCenter = () => {
+    loginAsJudge();
+    setActiveRole("Staff");
     setLocation("/app");
   };
 
@@ -66,9 +77,9 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f6f3ed] text-ink selection:bg-teal/20 selection:text-teal font-sans relative overflow-x-hidden">
+    <div className="min-h-screen bg-[#f6f3ed] text-ink selection:bg-[#0C7C74]/20 selection:text-[#0C7C74] font-sans relative overflow-x-hidden">
       {/* Background Cartographic Signals & Wash */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-radial from-teal/15 via-teal/5 to-transparent rounded-full blur-3xl pointer-events-none -z-10" />
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-radial from-[#0C7C74]/15 via-[#0C7C74]/5 to-transparent rounded-full blur-3xl pointer-events-none -z-10" />
       <div className="absolute top-[400px] left-[-100px] w-[600px] h-[600px] bg-radial from-amber/15 via-amber/5 to-transparent rounded-full blur-3xl pointer-events-none -z-10" />
 
       {/* Navigation Header */}
@@ -76,45 +87,39 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           {/* Brand Logo */}
           <Link href="/" className="flex items-center gap-3 group">
-            <div className="relative w-10 h-10 rounded-2xl bg-teal flex items-center justify-center text-paper shadow-md transition group-hover:scale-105">
-              <Compass size={22} className="transition group-hover:rotate-45" />
+            <div className="relative w-10 h-10 rounded-2xl bg-[#0C7C74] flex items-center justify-center text-paper shadow-md transition group-hover:scale-105">
+              <Building2 size={22} className="text-paper" />
               <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-ember border-2 border-paper" />
             </div>
             <div>
               <span className="font-display text-xl font-bold tracking-tight text-ink block leading-none">
                 DISHA
               </span>
-              <span className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-teal">
-                Travel Guardian
+              <span className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-[#0C7C74]">
+                Hospitality Intelligence
               </span>
             </div>
           </Link>
 
           {/* Center Navigation Links */}
           <nav className="hidden md:flex items-center gap-1 lg:gap-2 rounded-full border border-ink/10 bg-white/70 px-4 py-1.5 backdrop-blur-md shadow-xs">
-            <Link
-              href="/app"
-              className="px-3 py-1.5 text-xs font-bold text-ink/70 hover:text-teal transition rounded-full hover:bg-ink/5"
+            <button
+              onClick={handleLaunchGuestPortal}
+              className="px-3.5 py-1.5 text-xs font-bold text-ink/70 hover:text-[#0C7C74] transition rounded-full hover:bg-ink/5 cursor-pointer"
             >
-              Explore App
-            </Link>
+              Guest Experience
+            </button>
+            <button
+              onClick={handleLaunchOpsCenter}
+              className="px-3.5 py-1.5 text-xs font-bold text-ink/70 hover:text-[#0C7C74] transition rounded-full hover:bg-ink/5 cursor-pointer"
+            >
+              Command Center
+            </button>
             <Link
               href="/map"
-              className="px-3 py-1.5 text-xs font-bold text-ink/70 hover:text-teal transition rounded-full hover:bg-ink/5"
+              className="px-3.5 py-1.5 text-xs font-bold text-ink/70 hover:text-[#0C7C74] transition rounded-full hover:bg-ink/5"
             >
-              Safety Map
-            </Link>
-            <Link
-              href="/guides"
-              className="px-3 py-1.5 text-xs font-bold text-ink/70 hover:text-teal transition rounded-full hover:bg-ink/5"
-            >
-              Verified Guides
-            </Link>
-            <Link
-              href="/disaster"
-              className="px-3 py-1.5 text-xs font-bold text-ink/70 hover:text-teal transition rounded-full hover:bg-ink/5"
-            >
-              Disaster Network
+              Property & Safety Map
             </Link>
           </nav>
 
@@ -122,16 +127,16 @@ export default function LandingPage() {
           <div className="flex items-center gap-3">
             {user ? (
               <div className="flex items-center gap-2">
-                <Link
-                  href="/app"
-                  className="inline-flex items-center gap-2 rounded-full bg-teal/10 border border-teal/20 px-3.5 py-2 text-xs font-extrabold text-teal hover:bg-teal/20 transition"
+                <button
+                  onClick={handleLaunchGuestPortal}
+                  className="inline-flex items-center gap-2 rounded-full bg-[#0C7C74]/10 border border-[#0C7C74]/20 px-3.5 py-2 text-xs font-extrabold text-[#0C7C74] hover:bg-[#0C7C74]/20 transition cursor-pointer"
                 >
                   <UserCheck size={14} />
-                  <span>{user.isJudge ? "Judge Session Active" : user.name}</span>
-                </Link>
+                  <span>{user.name} ({user.role})</span>
+                </button>
                 <button
                   onClick={logout}
-                  className="text-xs font-bold text-ink/50 hover:text-ember px-2 py-1 transition"
+                  className="text-xs font-bold text-ink/50 hover:text-ember px-2 py-1 transition cursor-pointer"
                 >
                   Sign Out
                 </button>
@@ -140,16 +145,16 @@ export default function LandingPage() {
               <>
                 <button
                   onClick={openSignIn}
-                  className="hidden sm:inline-flex text-xs font-extrabold text-ink/80 hover:text-teal px-3 py-2 transition"
+                  className="hidden sm:inline-flex text-xs font-extrabold text-ink/80 hover:text-[#0C7C74] px-3 py-2 transition cursor-pointer"
                 >
                   Sign In
                 </button>
                 <button
-                  onClick={handleLaunchJudgeDemo}
-                  className="inline-flex items-center gap-2 rounded-full bg-teal px-4 py-2.5 text-xs font-extrabold text-white shadow-md hover:bg-[#09635d] transition active:scale-95"
+                  onClick={handleLaunchGuestPortal}
+                  className="inline-flex items-center gap-2 rounded-full bg-[#0C7C74] px-4 py-2.5 text-xs font-extrabold text-white shadow-md hover:bg-[#09635d] transition active:scale-95 cursor-pointer"
                 >
                   <Zap size={14} className="fill-white" />
-                  <span>1-Tap SIH Judge Demo</span>
+                  <span>Launch Platform Demo</span>
                 </button>
               </>
             )}
@@ -167,54 +172,58 @@ export default function LandingPage() {
             transition={{ duration: 0.6 }}
             className="lg:col-span-7 space-y-6 text-left"
           >
-            {/* Hackathon Badge */}
-            <div className="inline-flex items-center gap-2 rounded-full border border-teal/30 bg-teal/10 px-4 py-1.5 text-xs font-extrabold uppercase tracking-wider text-teal">
-              <Sparkles size={14} /> Smart India Hackathon 2026 Prototype • Jaipur Context
+            {/* Sector Badge */}
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#0C7C74]/30 bg-[#0C7C74]/10 px-4 py-1.5 text-xs font-extrabold uppercase tracking-wider text-[#0C7C74]">
+              <Building2 size={14} /> Hospitality Intelligence • Tertiary Sector Platform
             </div>
 
             {/* Editorial Headline */}
-            <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-ink leading-[1.1]">
-              Explore Intelligently. <br />
-              <span className="italic font-normal text-teal">Plan Only What You Need.</span> <br />
-              Keep Safety One Tap Away.
+            <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-ink leading-[1.08]">
+              DISHA <br />
+              <span className="italic font-normal text-[#0C7C74]">Context-Aware Hospitality Intelligence</span>
             </h1>
 
-            {/* Subheadline */}
-            <p className="text-base sm:text-lg text-ink/70 font-medium max-w-2xl leading-relaxed">
-              Disha is your context-aware travel companion—balancing iconic landmarks with authentic
-              hidden gems, dynamic AI day planning, and a deterministic offline-ready 1-tap emergency Safety Center.
-            </p>
+            {/* Tagline & Message */}
+            <div className="space-y-2">
+              <p className="text-xl sm:text-2xl font-bold text-ink/90 font-display">
+                Personalized Stays. Smarter Operations. Safer Guests.
+              </p>
+              <p className="text-base sm:text-lg text-ink/70 font-medium max-w-2xl leading-relaxed">
+                One intelligent layer connecting guests, hotel operations, and the surrounding environment in one real-time system.
+              </p>
+            </div>
 
             {/* Hero Action Buttons */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-2">
               <button
-                onClick={handleLaunchJudgeDemo}
-                className="inline-flex items-center justify-center gap-2.5 rounded-2xl bg-teal px-6 py-4 text-sm font-extrabold text-white shadow-xl shadow-teal/20 transition hover:bg-[#09635d] hover:shadow-2xl active:scale-98 group"
+                onClick={handleLaunchGuestPortal}
+                className="inline-flex items-center justify-center gap-2.5 rounded-2xl bg-[#0C7C74] px-6 py-4 text-sm font-extrabold text-white shadow-xl shadow-[#0C7C74]/20 transition hover:bg-[#09635d] hover:shadow-2xl active:scale-98 group cursor-pointer"
               >
                 <Zap size={18} className="fill-white" />
-                <span>Launch SIH Judge Demo (1-Tap Instant Login)</span>
+                <span>Guest Experience Portal</span>
                 <ArrowRight size={16} className="transition group-hover:translate-x-1" />
               </button>
 
-              <a
-                href="#features"
-                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-ink/20 bg-white/80 px-6 py-4 text-sm font-extrabold text-ink transition hover:border-teal hover:bg-white active:scale-98"
+              <button
+                onClick={handleLaunchOpsCenter}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-ink/20 bg-white/80 px-6 py-4 text-sm font-extrabold text-ink transition hover:border-[#0C7C74] hover:bg-white active:scale-98 cursor-pointer"
               >
-                <span>Explore Platform Features</span>
+                <Building2 size={18} className="text-[#0C7C74]" />
+                <span>Hotel Command Center</span>
                 <ChevronRight size={16} />
-              </a>
+              </button>
             </div>
 
             {/* Proof Points Bar */}
             <div className="pt-6 grid grid-cols-3 gap-4 border-t border-ink/10 text-left">
               <div>
-                <span className="font-display text-xl font-bold text-ink block">91/100</span>
+                <span className="font-display text-xl font-bold text-ink block">85% Live</span>
                 <span className="text-[11px] font-extrabold uppercase tracking-wider text-ink/50">
-                  Amber Fort Score
+                  Property Occupancy
                 </span>
               </div>
               <div>
-                <span className="font-display text-xl font-bold text-teal block">1-Tap SOS</span>
+                <span className="font-display text-xl font-bold text-[#0C7C74] block">15 min</span>
                 <span className="text-[11px] font-extrabold uppercase tracking-wider text-ink/50">
                   Offline Ready
                 </span>
@@ -462,7 +471,7 @@ export default function LandingPage() {
             {/* Launch Demo CTA */}
             <div className="pt-6">
               <button
-                onClick={handleLaunchJudgeDemo}
+                onClick={() => setLocation("/")}
                 className="inline-flex items-center gap-2 rounded-2xl bg-teal px-6 py-3.5 text-xs font-extrabold text-white shadow-lg transition hover:bg-[#09635d] active:scale-98"
               >
                 <Zap size={16} className="fill-white" />

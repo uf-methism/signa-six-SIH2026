@@ -1,16 +1,482 @@
-/* Civic Calm style: typed demo services keep safety signals explainable and visually calm. */
+/* Civic Calm style: DISHA Context-Aware Hospitality Intelligence. */
 
 export type DemoContext = {
   time: "Morning" | "Sunset" | "Night" | "Late Night" | "Rain";
   weather: "Clear" | "Heavy Rain";
   crowd: "Low" | "High" | "Peak";
-  location: "Jaipur" | "Amber Fort";
+  location: "The Amber Heritage Resort & Spa" | "Jaipur Palace Suites";
   alert: boolean;
-  /** Triggers the global DisasterAlertModal for SIH demo purposes */
+  /** Triggers the global PropertyAlertModal for SIH demo purposes */
   disasterAlert: boolean;
-  /** Toggles unverified community reports → verified in the live feed */
+  /** Toggles unverified staff reports → verified in the live feed */
   authorityVerified: boolean;
 };
+
+// Hotel Property & Guest Models
+export type Property = {
+  id: string;
+  name: string;
+  tagline: string;
+  location: { address: string; lat: number; lng: number };
+  totalRooms: number;
+  currentOccupancy: number;
+  amenities: string[];
+};
+
+export const currentProperty: Property = {
+  id: "amber-resort-jaipur",
+  name: "The Amber Heritage Resort & Spa",
+  tagline: "Personalized Stays. Smarter Operations. Safer Guests.",
+  location: { address: "Amer Hills Corridor, Jaipur, Rajasthan", lat: 26.9855, lng: 75.8513 },
+  totalRooms: 120,
+  currentOccupancy: 102, // 85% occupancy
+  amenities: ["Spa & Wellness Center", "Courtyard Dining", "Infinity Pool", "24/7 Digital Concierge", "Helipad & Transfers"],
+};
+
+export type GuestProfile = {
+  id: string;
+  name: string;
+  firstName: string;
+  roomNumber: string;
+  roomType: string;
+  floor: number;
+  checkIn: string;
+  checkOut: string;
+  nights: number;
+  stayStatus: "In House" | "Upcoming" | "Checked Out";
+  memberSince?: string;
+  interests: ("Heritage" | "Food" | "Shopping" | "Relaxation" | "Culture" | "Nature" | "Adventure")[];
+  timingPreference: "Morning" | "Afternoon" | "Evening" | "Flexible";
+  budgetPreference: "Low" | "Medium" | "Premium";
+  dietaryNeeds: string[];
+  accessibilityNeeds: string[];
+  languagePreference: string;
+  contactNumber?: string;
+  savedRecommendations: string[];
+  preferences: {
+    quietFloor: boolean;
+    highFloor: boolean;
+    extraPillows: boolean;
+    lateCheckoutRequested: boolean;
+    doNotDisturbActive: boolean;
+  };
+};
+
+/** @demo Aarav Sharma - 2 night heritage+food stay */
+export const sampleGuestProfile: GuestProfile = {
+  id: "guest-aarav",
+  name: "Aarav Sharma",
+  firstName: "Aarav",
+  roomNumber: "204",
+  roomType: "Heritage Deluxe",
+  floor: 2,
+  checkIn: "2026-09-29",
+  checkOut: "2026-10-01",
+  nights: 2,
+  stayStatus: "In House",
+  memberSince: "2024",
+  interests: ["Heritage", "Food", "Culture"],
+  timingPreference: "Morning",
+  budgetPreference: "Medium",
+  dietaryNeeds: ["Vegetarian"],
+  accessibilityNeeds: [],
+  languagePreference: "English",
+  savedRecommendations: ["amber-fort", "lmb-jaipur"],
+  preferences: {
+    quietFloor: true,
+    highFloor: false,
+    extraPillows: true,
+    lateCheckoutRequested: false,
+    doNotDisturbActive: false,
+  },
+};
+
+// Keep legacy alias for backward compat
+export const sampleGuestStay = {
+  guestName: sampleGuestProfile.name,
+  roomNumber: `Room ${sampleGuestProfile.roomNumber}`,
+  checkIn: sampleGuestProfile.checkIn,
+  checkOut: sampleGuestProfile.checkOut,
+  stayStatus: sampleGuestProfile.stayStatus,
+  preferences: {
+    quietFloor: sampleGuestProfile.preferences.quietFloor,
+    highFloor: sampleGuestProfile.preferences.highFloor,
+    dietary: sampleGuestProfile.dietaryNeeds,
+    lateCheckoutRequested: sampleGuestProfile.preferences.lateCheckoutRequested,
+  },
+};
+
+export type HotelService = {
+  id: string;
+  title: string;
+  category: "Housekeeping" | "Dining" | "Wellness" | "Concierge" | "Maintenance" | "Laundry" | "Transport" | "Special Assistance";
+  description: string;
+  estMinutes: number;
+  price: string;
+  iconName: string;
+  availableNow: boolean;
+};
+
+export const hotelServicesCatalog: HotelService[] = [
+  { id: "srv-hk-1", title: "Fresh Towels & Linen", category: "Housekeeping", description: "Plush organic cotton towels and fresh bedding delivered to your room.", estMinutes: 15, price: "Complimentary", iconName: "Sparkles", availableNow: true },
+  { id: "srv-hk-2", title: "Room Cleaning", category: "Housekeeping", description: "Full room cleaning with aromatherapy turn-down service.", estMinutes: 25, price: "Complimentary", iconName: "Sparkles", availableNow: true },
+  { id: "srv-hk-3", title: "Extra Amenities", category: "Housekeeping", description: "Request extra pillows, hangers, iron, or any room essentials.", estMinutes: 10, price: "Complimentary", iconName: "Plus", availableNow: true },
+  { id: "srv-din-1", title: "Rajasthani Royal Thali", category: "Dining", description: "Traditional multi-course thali served in-room with silver dining setup.", estMinutes: 30, price: "₹1,850", iconName: "Utensils", availableNow: true },
+  { id: "srv-din-2", title: "Breakfast In Bed", category: "Dining", description: "Chef's selection continental or full Indian breakfast served in room.", estMinutes: 25, price: "₹850", iconName: "Coffee", availableNow: true },
+  { id: "srv-din-3", title: "Restaurant Table Reservation", category: "Dining", description: "Reserve a table at our courtyard restaurant — specify time and guest count.", estMinutes: 5, price: "Complimentary", iconName: "Utensils", availableNow: true },
+  { id: "srv-spa-1", title: "Ayurvedic Massage", category: "Wellness", description: "60-minute therapeutic session at the Spa or in-suite. Heritage oil selection.", estMinutes: 60, price: "₹3,500", iconName: "Heart", availableNow: true },
+  { id: "srv-spa-2", title: "Yoga & Meditation Session", category: "Wellness", description: "Private 45-minute sunrise yoga session in our heritage courtyard.", estMinutes: 45, price: "₹1,200", iconName: "Sun", availableNow: true },
+  { id: "srv-con-1", title: "Airport / Station Transfer", category: "Transport", description: "Private luxury sedan to Jaipur International Airport or Railway Station.", estMinutes: 45, price: "₹2,200", iconName: "Car", availableNow: true },
+  { id: "srv-con-2", title: "City Sightseeing Cab", category: "Transport", description: "Full-day cab with verified driver for Amber Fort, City Palace, and bazaars.", estMinutes: 480, price: "₹3,800", iconName: "Car", availableNow: true },
+  { id: "srv-laun-1", title: "Express Laundry", category: "Laundry", description: "Wash & fold returned within 4 hours. Dry cleaning available overnight.", estMinutes: 240, price: "₹150/item", iconName: "Wind", availableNow: true },
+  { id: "srv-maint-1", title: "AC / Climate Adjustment", category: "Maintenance", description: "HVAC technician check and air purification filter setup.", estMinutes: 20, price: "Complimentary", iconName: "Wind", availableNow: true },
+  { id: "srv-maint-2", title: "Technical Support", category: "Maintenance", description: "WiFi, TV, or any in-room technical issue resolved immediately.", estMinutes: 15, price: "Complimentary", iconName: "Zap", availableNow: true },
+  { id: "srv-assist-1", title: "Special Assistance Request", category: "Special Assistance", description: "Wheelchair access, visual/hearing assistance, or any special need — our team will coordinate personally.", estMinutes: 10, price: "Complimentary", iconName: "HeartHandshake", availableNow: true },
+];
+
+export type ServiceTicketCategory =
+  | "Housekeeping"
+  | "Room Service"
+  | "Maintenance"
+  | "Transport"
+  | "Laundry"
+  | "Amenities"
+  | "Special Assistance"
+  | "Other";
+
+export type TicketStateAction =
+  | "Created"
+  | "Accepted"
+  | "Started Work"
+  | "Completed Work"
+  | "Closed"
+  | "Reopened"
+  | "Reassigned"
+  | "Priority Updated";
+
+export type TicketAuditLog = {
+  timestamp: string;
+  user: string;
+  role: "Guest" | "Staff" | "Manager" | "System AI";
+  action: TicketStateAction;
+  note?: string;
+  fromStatus?: string;
+  toStatus?: string;
+};
+
+export const CATEGORY_SLA_MINUTES: Record<ServiceTicketCategory, number> = {
+  Transport: 10,
+  Maintenance: 15,
+  Housekeeping: 20,
+  "Room Service": 15,
+  Laundry: 30,
+  Amenities: 15,
+  "Special Assistance": 10,
+  Other: 20,
+};
+
+export function classifyServiceRequestText(text: string): {
+  suggestedCategory: ServiceTicketCategory;
+  suggestedPriority: "Low" | "Medium" | "High" | "Urgent";
+  confidence: number;
+  reason: string;
+} {
+  const lower = text.toLowerCase();
+
+  if (
+    lower.includes("leak") ||
+    lower.includes("ac") ||
+    lower.includes("broken") ||
+    lower.includes("shower") ||
+    lower.includes("water") ||
+    lower.includes("repair") ||
+    lower.includes("light") ||
+    lower.includes("noise")
+  ) {
+    const isUrgent = lower.includes("leak") || lower.includes("overflow") || lower.includes("spark");
+    return {
+      suggestedCategory: "Maintenance",
+      suggestedPriority: isUrgent ? "High" : "Medium",
+      confidence: 0.92,
+      reason: "Detected HVAC / plumbing keywords",
+    };
+  }
+
+  if (
+    lower.includes("cab") ||
+    lower.includes("pickup") ||
+    lower.includes("transport") ||
+    lower.includes("shuttle") ||
+    lower.includes("airport") ||
+    lower.includes("ride") ||
+    lower.includes("rain pickup")
+  ) {
+    const isHigh = lower.includes("rain") || lower.includes("flight") || lower.includes("urgent");
+    return {
+      suggestedCategory: "Transport",
+      suggestedPriority: isHigh ? "High" : "Medium",
+      confidence: 0.95,
+      reason: "Detected transit / shuttle request",
+    };
+  }
+
+  if (
+    lower.includes("towel") ||
+    lower.includes("pillow") ||
+    lower.includes("clean") ||
+    lower.includes("blanket") ||
+    lower.includes("bed") ||
+    lower.includes("trash") ||
+    lower.includes("housekeeping")
+  ) {
+    return {
+      suggestedCategory: "Housekeeping",
+      suggestedPriority: lower.includes("urgent") ? "High" : "Low",
+      confidence: 0.90,
+      reason: "Detected room linen & amenity keywords",
+    };
+  }
+
+  if (
+    lower.includes("food") ||
+    lower.includes("tea") ||
+    lower.includes("dinner") ||
+    lower.includes("breakfast") ||
+    lower.includes("drink") ||
+    lower.includes("water bottle") ||
+    lower.includes("coffee") ||
+    lower.includes("snack")
+  ) {
+    return {
+      suggestedCategory: "Room Service",
+      suggestedPriority: "Medium",
+      confidence: 0.88,
+      reason: "Detected F&B / in-room dining keywords",
+    };
+  }
+
+  if (
+    lower.includes("laundry") ||
+    lower.includes("iron") ||
+    lower.includes("dry clean") ||
+    lower.includes("press") ||
+    lower.includes("wash")
+  ) {
+    return {
+      suggestedCategory: "Laundry",
+      suggestedPriority: lower.includes("express") ? "High" : "Medium",
+      confidence: 0.91,
+      reason: "Detected garment care keywords",
+    };
+  }
+
+  if (
+    lower.includes("wheelchair") ||
+    lower.includes("elderly") ||
+    lower.includes("disability") ||
+    lower.includes("assistance") ||
+    lower.includes("medical")
+  ) {
+    return {
+      suggestedCategory: "Special Assistance",
+      suggestedPriority: "High",
+      confidence: 0.96,
+      reason: "Detected accessibility & special care request",
+    };
+  }
+
+  return {
+    suggestedCategory: "Housekeeping",
+    suggestedPriority: "Medium",
+    confidence: 0.70,
+    reason: "Default context classification",
+  };
+}
+
+export type ServiceTicket = {
+  id: string;
+  roomNumber: string;
+  guestName: string;
+  category: ServiceTicketCategory;
+  title: string;
+  details: string;
+  priority: "Low" | "Medium" | "High" | "Urgent";
+  status: "New" | "Accepted" | "In Progress" | "Completed" | "Closed";
+  assignedStaff: string;
+  timestamp: string;
+  scheduledFor?: string;
+  preferredTime?: string;
+
+  // AI Classification metadata
+  aiSuggestedCategory?: ServiceTicketCategory;
+  aiSuggestedPriority?: "Low" | "Medium" | "High" | "Urgent";
+  aiConfidence?: number;
+
+  // SLA & Overdue Logic
+  slaMinutes: number;
+  createdTimeMs: number;
+  acceptedTimeMs?: number;
+  startedTimeMs?: number;
+  completedTimeMs?: number;
+  closedTimeMs?: number;
+
+  // Analytics Metrics
+  responseTimeMinutes?: number;
+  resolutionTimeMinutes?: number;
+
+  // Audit Log State Machine History
+  history: TicketAuditLog[];
+};
+
+const nowMs = Date.now();
+
+export const initialServiceTickets: ServiceTicket[] = [
+  {
+    id: "tkt-204",
+    roomNumber: "204",
+    guestName: "S. Roy (Aarav Sharma)",
+    category: "Transport",
+    title: "Amber Fort Rain Pickup",
+    details: "Guest requested urgent cab pickup from Amber Fort before 17:30 rainfall.",
+    priority: "High",
+    status: "New",
+    assignedStaff: "Shuttle #2 (Ramesh K.)",
+    timestamp: "14:15",
+    scheduledFor: "17:15",
+    preferredTime: "Immediate (Pre-rain)",
+    slaMinutes: 10,
+    createdTimeMs: nowMs - 25 * 60 * 1000, // 25 mins ago (SLA exceeded -> Attention Required)
+    aiSuggestedCategory: "Transport",
+    aiSuggestedPriority: "High",
+    aiConfidence: 0.95,
+    history: [
+      {
+        timestamp: "14:15",
+        user: "Aarav Sharma",
+        role: "Guest",
+        action: "Created",
+        note: "Submitted request via DISHA Digital Companion",
+      },
+      {
+        timestamp: "14:16",
+        user: "DISHA AI Core",
+        role: "System AI",
+        action: "Priority Updated",
+        note: "Auto-tagged High Priority based on weather radar signal",
+      },
+    ],
+  },
+  {
+    id: "tkt-318",
+    roomNumber: "318",
+    guestName: "M. Patel",
+    category: "Maintenance",
+    title: "HVAC Temperature Calibration",
+    details: "AC cooling efficiency degraded; room reading 26°C, target 22°C.",
+    priority: "Medium",
+    status: "In Progress",
+    assignedStaff: "Technician Rajesh",
+    timestamp: "13:50",
+    slaMinutes: 15,
+    createdTimeMs: nowMs - 40 * 60 * 1000,
+    acceptedTimeMs: nowMs - 35 * 60 * 1000,
+    startedTimeMs: nowMs - 20 * 60 * 1000,
+    responseTimeMinutes: 5,
+    aiSuggestedCategory: "Maintenance",
+    aiSuggestedPriority: "Medium",
+    aiConfidence: 0.92,
+    history: [
+      { timestamp: "13:50", user: "M. Patel", role: "Guest", action: "Created", note: "AC leaking / not cooling" },
+      { timestamp: "13:55", user: "Priya Singh", role: "Staff", action: "Accepted", note: "Assigned to Tech Rajesh" },
+      { timestamp: "14:10", user: "Technician Rajesh", role: "Staff", action: "Started Work", note: "Inspecting condenser unit" },
+    ],
+  },
+  {
+    id: "tkt-412",
+    roomNumber: "412",
+    guestName: "K. Sharma",
+    category: "Housekeeping",
+    title: "Extra Towels & Foam Pillows",
+    details: "Guest requested 2 extra bath sheets and hypoallergenic memory foam pillows.",
+    priority: "Low",
+    status: "Accepted",
+    assignedStaff: "Priya Singh",
+    timestamp: "14:05",
+    slaMinutes: 20,
+    createdTimeMs: nowMs - 12 * 60 * 1000,
+    acceptedTimeMs: nowMs - 8 * 60 * 1000,
+    responseTimeMinutes: 4,
+    history: [
+      { timestamp: "14:05", user: "K. Sharma", role: "Guest", action: "Created", note: "Linen request" },
+      { timestamp: "14:09", user: "Priya Singh", role: "Staff", action: "Accepted", note: "Retrieving from 4th floor linen locker" },
+    ],
+  },
+  {
+    id: "tkt-105",
+    roomNumber: "105",
+    guestName: "Rajesh Gupta",
+    category: "Room Service",
+    title: "High Tea & Immunity Toddy",
+    details: "In-room afternoon tea set for 2 guests with local herbal infusion.",
+    priority: "Medium",
+    status: "New",
+    assignedStaff: "Unassigned",
+    timestamp: "14:22",
+    slaMinutes: 15,
+    createdTimeMs: nowMs - 5 * 60 * 1000,
+    history: [
+      { timestamp: "14:22", user: "Rajesh Gupta", role: "Guest", action: "Created", note: "In-room tea service" },
+    ],
+  },
+  {
+    id: "tkt-501",
+    roomNumber: "Suite 501",
+    guestName: "Elena Rostova",
+    category: "Laundry",
+    title: "Express Evening Dry Cleaning",
+    details: "Formal wear press and return required before 19:00 dinner reservation.",
+    priority: "High",
+    status: "In Progress",
+    assignedStaff: "Laundry Care Team",
+    timestamp: "13:30",
+    slaMinutes: 30,
+    createdTimeMs: nowMs - 60 * 60 * 1000,
+    acceptedTimeMs: nowMs - 55 * 60 * 1000,
+    startedTimeMs: nowMs - 45 * 60 * 1000,
+    responseTimeMinutes: 5,
+    history: [
+      { timestamp: "13:30", user: "Elena Rostova", role: "Guest", action: "Created", note: "Express press request" },
+      { timestamp: "13:35", user: "Front Desk", role: "Staff", action: "Accepted", note: "Routed to Laundry Valet" },
+      { timestamp: "13:45", user: "Laundry Care Team", role: "Staff", action: "Started Work", note: "Steam press in progress" },
+    ],
+  },
+  {
+    id: "tkt-210",
+    roomNumber: "210",
+    guestName: "L. Fernandez",
+    category: "Maintenance",
+    title: "Balcony Door Latch Inspection",
+    details: "Balcony sliding glass door latch sticking; safety inspection.",
+    priority: "Low",
+    status: "Completed",
+    assignedStaff: "Tech Sanjay",
+    timestamp: "11:45",
+    slaMinutes: 15,
+    createdTimeMs: nowMs - 180 * 60 * 1000,
+    acceptedTimeMs: nowMs - 175 * 60 * 1000,
+    startedTimeMs: nowMs - 165 * 60 * 1000,
+    completedTimeMs: nowMs - 150 * 60 * 1000,
+    responseTimeMinutes: 5,
+    resolutionTimeMinutes: 30,
+    history: [
+      { timestamp: "11:45", user: "L. Fernandez", role: "Guest", action: "Created", note: "Door latch sticking" },
+      { timestamp: "11:50", user: "Priya Singh", role: "Staff", action: "Accepted", note: "Assigned Tech Sanjay" },
+      { timestamp: "12:00", user: "Tech Sanjay", role: "Staff", action: "Started Work", note: "Lubricating track & latch" },
+      { timestamp: "12:15", user: "Tech Sanjay", role: "Staff", action: "Completed Work", note: "Latch repaired & verified smooth" },
+    ],
+  },
+];
+
 
 export type Place = {
   id: string;

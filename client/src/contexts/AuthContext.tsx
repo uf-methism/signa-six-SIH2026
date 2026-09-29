@@ -1,24 +1,29 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { toast } from "sonner";
 
+export type UserRole = "Guest" | "Staff" | "Manager" | "SIH Evaluator";
+
 export interface User {
   name: string;
   email: string;
-  role: string;
+  role: UserRole;
+  roomNumber?: string;
   preferredLanguage: string;
   isJudge: boolean;
 }
 
 interface AuthContextType {
   user: User | null;
+  activeRole: UserRole;
   isAuthenticated: boolean;
-  login: (email: string, name?: string, language?: string) => void;
-  signup: (name: string, email: string, language: string) => void;
+  login: (email: string, name?: string, role?: UserRole, roomNumber?: string, language?: string) => void;
+  signup: (name: string, email: string, role: UserRole, language: string) => void;
   loginAsJudge: () => void;
+  setActiveRole: (role: UserRole) => void;
   logout: () => void;
 }
 
-const STORAGE_KEY = "disha_user_session";
+const STORAGE_KEY = "disha_hospitality_session";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -26,10 +31,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      return saved ? JSON.parse(saved) : null;
+      return saved ? JSON.parse(saved) : {
+        name: "SIH Evaluator",
+        email: "evaluator@disha.hospitality",
+        role: "SIH Evaluator",
+        roomNumber: "Suite 402",
+        preferredLanguage: "English",
+        isJudge: true,
+      };
     } catch {
       return null;
     }
+  });
+
+  const [activeRole, setActiveRoleState] = useState<UserRole>(() => {
+    return user?.role || "Guest";
   });
 
   useEffect(() => {
@@ -44,57 +60,75 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [user]);
 
-  const login = (email: string, name?: string, language: string = "English") => {
+  const setActiveRole = (role: UserRole) => {
+    setActiveRoleState(role);
+    if (user) {
+      setUser({ ...user, role });
+    }
+    toast.info(`Switched interface to ${role} Mode`, {
+      description: role === "Guest" ? "Viewing Guest Stay Experience" : role === "Staff" ? "Viewing Hotel Staff Operations Queue" : "Viewing Hotel Management & Intelligence Center",
+    });
+  };
+
+  const login = (email: string, name?: string, role: UserRole = "Guest", roomNumber: string = "Suite 304", language: string = "English") => {
     const newUser: User = {
-      name: name || email.split("@")[0] || "Traveler",
+      name: name || email.split("@")[0] || "Valued Guest",
       email,
-      role: "Standard User",
+      role,
+      roomNumber,
       preferredLanguage: language,
       isJudge: false,
     };
     setUser(newUser);
-    toast.success(`Welcome back, ${newUser.name}!`);
+    setActiveRoleState(role);
+    toast.success(`Welcome to DISHA Hospitality, ${newUser.name}!`);
   };
 
-  const signup = (name: string, email: string, language: string) => {
+  const signup = (name: string, email: string, role: UserRole = "Guest", language: string = "English") => {
     const newUser: User = {
       name,
       email,
-      role: "Verified Tourist",
+      role,
+      roomNumber: "Suite 304",
       preferredLanguage: language,
       isJudge: false,
     };
     setUser(newUser);
-    toast.success(`Account created successfully! Welcome to Disha, ${name}.`);
+    setActiveRoleState(role);
+    toast.success(`Account created successfully! Welcome to DISHA, ${name}.`);
   };
 
   const loginAsJudge = () => {
     const judgeUser: User = {
-      name: "SIH Judge / Evaluator",
-      email: "evaluator@sih2026.gov.in",
+      name: "SIH Evaluator",
+      email: "evaluator@disha.hospitality",
       role: "SIH Evaluator",
+      roomNumber: "Royal Suite 401",
       preferredLanguage: "English",
       isJudge: true,
     };
     setUser(judgeUser);
-    toast.success("⚡ Logged in as SIH Evaluator (Demo Mode Activated)", {
-      description: "Jaipur context loaded with full access to SOS, Itinerary Engine & Safety Network.",
+    setActiveRoleState("Guest");
+    toast.success("⚡ Logged in as SIH Evaluator (Demo Mode)", {
+      description: "Full access to Guest Experience, Hotel Command Center & Environmental Safety.",
     });
   };
 
   const logout = () => {
     setUser(null);
-    toast.info("Logged out of Disha session.");
+    toast.info("Logged out of DISHA session.");
   };
 
   return (
     <AuthContext.Provider
       value={{
         user,
+        activeRole,
         isAuthenticated: !!user,
         login,
         signup,
         loginAsJudge,
+        setActiveRole,
         logout,
       }}
     >
@@ -110,3 +144,4 @@ export const useAuth = () => {
   }
   return context;
 };
+
